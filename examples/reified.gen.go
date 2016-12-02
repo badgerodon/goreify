@@ -1,5 +1,131 @@
 package examples
 
+func Contains_int(haystack []int, needle int) bool {
+	for _, el := range haystack {
+		if el == needle {
+			return true
+		}
+	}
+	return false
+}
+
+func Contains_int8(haystack []int8, needle int8) bool {
+	for _, el := range haystack {
+		if el == needle {
+			return true
+		}
+	}
+	return false
+}
+
+func Contains_int16(haystack []int16, needle int16) bool {
+	for _, el := range haystack {
+		if el == needle {
+			return true
+		}
+	}
+	return false
+}
+
+func Contains_int32(haystack []int32, needle int32) bool {
+	for _, el := range haystack {
+		if el == needle {
+			return true
+		}
+	}
+	return false
+}
+
+func Contains_int64(haystack []int64, needle int64) bool {
+	for _, el := range haystack {
+		if el == needle {
+			return true
+		}
+	}
+	return false
+}
+
+func Contains_uint(haystack []uint, needle uint) bool {
+	for _, el := range haystack {
+		if el == needle {
+			return true
+		}
+	}
+	return false
+}
+
+func Contains_uint8(haystack []uint8, needle uint8) bool {
+	for _, el := range haystack {
+		if el == needle {
+			return true
+		}
+	}
+	return false
+}
+
+func Contains_uint16(haystack []uint16, needle uint16) bool {
+	for _, el := range haystack {
+		if el == needle {
+			return true
+		}
+	}
+	return false
+}
+
+func Contains_uint32(haystack []uint32, needle uint32) bool {
+	for _, el := range haystack {
+		if el == needle {
+			return true
+		}
+	}
+	return false
+}
+
+func Contains_uint64(haystack []uint64, needle uint64) bool {
+	for _, el := range haystack {
+		if el == needle {
+			return true
+		}
+	}
+	return false
+}
+
+func Contains_float32(haystack []float32, needle float32) bool {
+	for _, el := range haystack {
+		if el == needle {
+			return true
+		}
+	}
+	return false
+}
+
+func Contains_float64(haystack []float64, needle float64) bool {
+	for _, el := range haystack {
+		if el == needle {
+			return true
+		}
+	}
+	return false
+}
+
+func Contains_complex64(haystack []complex64, needle complex64) bool {
+	for _, el := range haystack {
+		if el == needle {
+			return true
+		}
+	}
+	return false
+}
+
+func Contains_complex128(haystack []complex128, needle complex128) bool {
+	for _, el := range haystack {
+		if el == needle {
+			return true
+		}
+	}
+	return false
+}
+
 func Sum_int(xs []int) int {
 	var total int
 	for _, x := range xs {
@@ -293,3 +419,4 @@ func Diff_complex128(xs, ys []complex128) []complex128 {
 	}
 	return zs
 }
+
