@@ -147,3 +147,9 @@ Global functions using a type:
     }
 
 I haven't investigated Channels yet.
+
+## Other Libraries
+
+I found [`gengen`](https://github.com/joeshaw/gengen) after implementing most of
+this functionality. It follows a similar approach, though doesn't take it quite
+as far.
