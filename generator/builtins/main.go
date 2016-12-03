@@ -179,6 +179,34 @@ func main() {
 		},
 
 		// comparisons
+		{
+			Name:       "Less",
+			Operator:   "<",
+			Token:      "LSS",
+			Types:      expandTypes("integers", "floats", "string"),
+			Comparison: true,
+		},
+		{
+			Name:       "LessOrEqual",
+			Operator:   "<=",
+			Token:      "LEQ",
+			Types:      expandTypes("integers", "floats", "string"),
+			Comparison: true,
+		},
+		{
+			Name:       "Greater",
+			Operator:   ">",
+			Token:      "GTR",
+			Types:      expandTypes("integers", "floats", "string"),
+			Comparison: true,
+		},
+		{
+			Name:       "GreaterOrEqual",
+			Operator:   ">=",
+			Token:      "GEQ",
+			Types:      expandTypes("integers", "floats", "string"),
+			Comparison: true,
+		},
 	}
 
 	os.Stdout.WriteString("package generics\n\n")
@@ -213,7 +241,11 @@ func NotEqual(x, y interface{}) bool {
 	os.Stdout.WriteString("}\n")
 
 	for _, def := range binaryDefs {
-		tpl.ExecuteTemplate(os.Stdout, "binary_op", def)
+		tplnm := "binary_op"
+		if def.Comparison {
+			tplnm = "comparison_op"
+		}
+		tpl.ExecuteTemplate(os.Stdout, tplnm, def)
 	}
 	os.Stdout.WriteString("\n\n")
 

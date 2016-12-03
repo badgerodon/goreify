@@ -6,10 +6,10 @@ import (
 	"go/printer"
 	"go/token"
 	"io"
+	"path"
 	"reflect"
 
 	"github.com/badgerodon/goreify/generics"
-	"github.com/pkg/errors"
 )
 
 // A Generator generates code
@@ -32,18 +32,30 @@ func NewGenerator(pkgname string, fset *token.FileSet) *Generator {
 }
 
 // GenerateFromFile generates definitions from the given file
-func (g *Generator) GenerateFromFile(file *ast.File) error {
+func (g *Generator) GenerateFromFile(file *ast.File, entity string, cfg *ReifyConfig) error {
+	for _, i := range file.Imports {
+		value := i.Path.Value
+		if len(value) > 0 && value[0] == '"' {
+			value = value[1:]
+		}
+		if len(value) > 0 && value[len(value)-1] == '"' {
+			value = value[:len(value)-1]
+		}
+		name := path.Base(value)
+		if i.Name != nil {
+			name = i.Name.Name
+		}
+		g.imports[name] = value
+	}
+
 	for _, decl := range file.Decls {
 		switch decl.(type) {
 		case *ast.FuncDecl:
 			f := decl.(*ast.FuncDecl)
-			cfg, err := ParseConfigFromComment(f.Doc.Text())
-			if err == ErrNotFound {
+			if f.Name.Name != entity {
 				continue
-			} else if err != nil {
-				return errors.Wrapf(err, "failed to parse reify config")
 			}
-			err = g.GenerateFromFunction(f, cfg)
+			err := g.GenerateFromFunction(f, cfg)
 			if err != nil {
 				return err
 			}
@@ -87,9 +99,6 @@ func (g *Generator) GenerateFromFunction(f *ast.FuncDecl, cfg *ReifyConfig) erro
 			nodestack = append(nodestack, n)
 			return true
 		})
-
-		// g.visitFieldList(reified, f.Type.Params)
-		// g.visitFieldList(reified, f.Type.Results)
 
 		printer.Fprint(&g.code, g.fset, []ast.Decl{f})
 		g.code.WriteString("\n\n")

@@ -1,12 +1,12 @@
 package examples
 
 import (
-	"sort"
+	sort "sort"
 
-	"github.com/badgerodon/goreify/generics"
+	generics "github.com/badgerodon/goreify/generics"
 )
 
-func Sort(xs []generics.T1) {
+func Sort_int8(xs []int8) {
 	sort.Sort(generics.NewSorter(
 		func() int {
 			return len(xs)
@@ -15,7 +15,7 @@ func Sort(xs []generics.T1) {
 			xs[i], xs[j] = xs[j], xs[i]
 		},
 		func(i, j int) bool {
-			return generics.Less(xs[i], xs[j])
+			return xs[i] < xs[j]
 		},
 	))
 }

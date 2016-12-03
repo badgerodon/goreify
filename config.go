@@ -1,11 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"errors"
+	"fmt"
+	"sort"
 	"strings"
-
-	"gopkg.in/yaml.v2"
 )
 
 // Config parsing errors
@@ -28,6 +27,36 @@ func (t ReifiedTypes) NameExtension() string {
 // A ReifyConfig specifies how to reify types
 type ReifyConfig struct {
 	TypeSpecs map[string][]string
+}
+
+// Set sets the cfg from a string
+func (cfg *ReifyConfig) Set(str string) error {
+	for _, str := range strings.Fields(str) {
+		if strings.Contains(str, ":") {
+			xs := strings.SplitN(str, ":", 2)
+			cfg.TypeSpecs[xs[0]] = expandTypes(strings.Split(xs[1], ",")...)
+		} else {
+			i := len(cfg.TypeSpecs) + 1
+			cfg.TypeSpecs[fmt.Sprint("T", i)] = expandTypes(strings.Split(str, ",")...)
+		}
+	}
+	return nil
+}
+
+// String returns the config as a string
+func (cfg *ReifyConfig) String() string {
+	var keys []string
+	for k := range cfg.TypeSpecs {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	var kvs []string
+	for _, k := range keys {
+		v := strings.Join(cfg.TypeSpecs[k], ",")
+		kv := fmt.Sprintf("%v:%v", k, v)
+		kvs = append(kvs, kv)
+	}
+	return strings.Join(kvs, " ")
 }
 
 // Permutations returns all the possible permutations of the types
@@ -55,67 +84,6 @@ func (cfg *ReifyConfig) Permutations() []ReifiedTypes {
 	}
 	permute(nil, allkeys)
 	return all
-}
-
-// ParseConfigFromComment parses the reify config from a comment
-func ParseConfigFromComment(comment string) (*ReifyConfig, error) {
-	s := bufio.NewScanner(strings.NewReader(comment))
-	const (
-		normal byte = iota
-		startConfig
-		inConfig
-	)
-
-	mode := normal
-	indent := 0
-	configtext := ""
-	for s.Scan() {
-		ln := s.Text()
-		switch mode {
-		case normal:
-			if strings.TrimSpace(ln) == "reify:" {
-				mode = startConfig
-			}
-		case startConfig:
-			indent = getIndent(ln)
-			if indent == 0 {
-				mode = normal
-			} else {
-				mode = inConfig
-				configtext += ln + "\n"
-			}
-		case inConfig:
-			if getIndent(ln) < indent {
-				mode = normal
-			} else {
-				configtext += ln + "\n"
-			}
-		}
-	}
-
-	if configtext == "" {
-		return nil, ErrNotFound
-	}
-
-	var tmp struct {
-		Types map[string]string `yaml:"types"`
-	}
-	err := yaml.Unmarshal([]byte(configtext), &tmp)
-	if err != nil {
-		return nil, err
-	}
-
-	cfg := &ReifyConfig{
-		TypeSpecs: map[string][]string{},
-	}
-	for name, types := range tmp.Types {
-		cfg.TypeSpecs[name] = expandTypes(strings.Split(types, ",")...)
-	}
-	return cfg, nil
-}
-
-func getIndent(txt string) int {
-	return len(txt) - len(strings.TrimLeft(txt, " \t"))
 }
 
 func expandTypes(types ...string) []string {

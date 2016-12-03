@@ -34,6 +34,10 @@ var BinaryOpTokens = map[string]token.Token{
 	"BitClear": token.AND_NOT,
 	"LeftShift": token.SHL,
 	"RightShift": token.SHR,
+	"Less": token.LSS,
+	"LessOrEqual": token.LEQ,
+	"Greater": token.GTR,
+	"GreaterOrEqual": token.GEQ,
 }
 
 // Add calls the '+' operator
@@ -470,6 +474,178 @@ func RightShift(x, y interface{}) interface{} {
 
     }
     panic(fmt.Sprintf(">> not implemented for %T", x))
+}
+
+func Less(x, y interface{}) bool {
+	switch t := x.(type) {
+
+	case float32:
+		return t < To_float32(y)
+
+	case float64:
+		return t < To_float64(y)
+
+	case int:
+		return t < To_int(y)
+
+	case int16:
+		return t < To_int16(y)
+
+	case int32:
+		return t < To_int32(y)
+
+	case int8:
+		return t < To_int8(y)
+
+	case string:
+		return t < To_string(y)
+
+	case uint:
+		return t < To_uint(y)
+
+	case uint16:
+		return t < To_uint16(y)
+
+	case uint64:
+		return t < To_uint64(y)
+
+	case uint8:
+		return t < To_uint8(y)
+
+	case uintptr:
+		return t < To_uintptr(y)
+
+	}
+    panic(fmt.Sprintf("< not implemented for %T", x))
+}
+
+func LessOrEqual(x, y interface{}) bool {
+	switch t := x.(type) {
+
+	case float32:
+		return t <= To_float32(y)
+
+	case float64:
+		return t <= To_float64(y)
+
+	case int:
+		return t <= To_int(y)
+
+	case int16:
+		return t <= To_int16(y)
+
+	case int32:
+		return t <= To_int32(y)
+
+	case int8:
+		return t <= To_int8(y)
+
+	case string:
+		return t <= To_string(y)
+
+	case uint:
+		return t <= To_uint(y)
+
+	case uint16:
+		return t <= To_uint16(y)
+
+	case uint64:
+		return t <= To_uint64(y)
+
+	case uint8:
+		return t <= To_uint8(y)
+
+	case uintptr:
+		return t <= To_uintptr(y)
+
+	}
+    panic(fmt.Sprintf("<= not implemented for %T", x))
+}
+
+func Greater(x, y interface{}) bool {
+	switch t := x.(type) {
+
+	case float32:
+		return t > To_float32(y)
+
+	case float64:
+		return t > To_float64(y)
+
+	case int:
+		return t > To_int(y)
+
+	case int16:
+		return t > To_int16(y)
+
+	case int32:
+		return t > To_int32(y)
+
+	case int8:
+		return t > To_int8(y)
+
+	case string:
+		return t > To_string(y)
+
+	case uint:
+		return t > To_uint(y)
+
+	case uint16:
+		return t > To_uint16(y)
+
+	case uint64:
+		return t > To_uint64(y)
+
+	case uint8:
+		return t > To_uint8(y)
+
+	case uintptr:
+		return t > To_uintptr(y)
+
+	}
+    panic(fmt.Sprintf("> not implemented for %T", x))
+}
+
+func GreaterOrEqual(x, y interface{}) bool {
+	switch t := x.(type) {
+
+	case float32:
+		return t >= To_float32(y)
+
+	case float64:
+		return t >= To_float64(y)
+
+	case int:
+		return t >= To_int(y)
+
+	case int16:
+		return t >= To_int16(y)
+
+	case int32:
+		return t >= To_int32(y)
+
+	case int8:
+		return t >= To_int8(y)
+
+	case string:
+		return t >= To_string(y)
+
+	case uint:
+		return t >= To_uint(y)
+
+	case uint16:
+		return t >= To_uint16(y)
+
+	case uint64:
+		return t >= To_uint64(y)
+
+	case uint8:
+		return t >= To_uint8(y)
+
+	case uintptr:
+		return t >= To_uintptr(y)
+
+	}
+    panic(fmt.Sprintf(">= not implemented for %T", x))
 }
 
 
