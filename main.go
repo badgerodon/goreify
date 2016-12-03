@@ -83,6 +83,8 @@ func main() {
 		options.out = "reified_" + strings.ToLower(entity) + ".go"
 	}
 
+	os.Remove(options.out)
+
 	err := generate()
 	if err != nil {
 		log.Fatalf("failed to generate code: %v", err)
@@ -118,10 +120,11 @@ func generate() error {
 
 	var buf bytes.Buffer
 	g.Export(&buf)
+	raw := buf.Bytes()
 
-	bs, err := imports.Process(options.out, buf.Bytes(), nil)
+	bs, err := imports.Process(options.out, raw, nil)
 	if err != nil {
-		return errors.Wrapf(err, "failed to process imports")
+		bs = raw
 	}
 
 	return ioutil.WriteFile(options.out, bs, 0755)

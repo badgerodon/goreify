@@ -6,6 +6,7 @@ import (
 	"github.com/badgerodon/goreify/generics"
 )
 
+// Sort sorts a list
 func Sort(xs []generics.T1) {
 	sort.Sort(generics.NewSorter(
 		func() int {

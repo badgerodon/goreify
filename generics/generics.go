@@ -10,6 +10,22 @@ type (
 
 	// T1 is a generic type
 	T1 interface{}
+	// T2 is a generic type
+	T2 interface{}
+	// T3 is a generic type
+	T3 interface{}
+	// T4 is a generic type
+	T4 interface{}
+	// T5 is a generic type
+	T5 interface{}
+	// T6 is a generic type
+	T6 interface{}
+	// T7 is a generic type
+	T7 interface{}
+	// T8 is a generic type
+	T8 interface{}
+	// T9 is a generic type
+	T9 interface{}
 )
 
 type sorter struct {

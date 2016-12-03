@@ -8,6 +8,7 @@ import (
 	"io"
 	"path"
 	"reflect"
+	"strings"
 
 	"github.com/badgerodon/goreify/generics"
 )
@@ -49,15 +50,58 @@ func (g *Generator) GenerateFromFile(file *ast.File, entity string, cfg *ReifyCo
 	}
 
 	for _, decl := range file.Decls {
-		switch decl.(type) {
+		switch t := decl.(type) {
 		case *ast.FuncDecl:
-			f := decl.(*ast.FuncDecl)
-			if f.Name.Name != entity {
-				continue
+			isGenericFunction := false
+			isMethod := false
+			isGlobalFunction := false
+			if t.Name.Name == entity {
+				isGenericFunction = true
+			} else {
+				if t.Recv != nil && len(t.Recv.List) > 0 {
+					for _, ident := range g.getIdentifiers(t.Recv) {
+						if ident.Name == entity {
+							isMethod = true
+							break
+						}
+					}
+				}
+
+				if t.Type.Results != nil && len(t.Type.Results.List) > 0 {
+					for _, ident := range g.getIdentifiers(t.Type.Results) {
+						if ident.Name == entity {
+							isGlobalFunction = true
+							break
+						}
+					}
+				}
 			}
-			err := g.GenerateFromFunction(f, cfg)
-			if err != nil {
-				return err
+
+			if isGenericFunction || isMethod || isGlobalFunction {
+				err := g.GenerateFromFunction(t, entity, cfg,
+					// we update the types inside the function if this is a
+					// method or a global function
+					isMethod || isGlobalFunction,
+					// we rename the function if its generic or uses the generic
+					// type
+					(isGenericFunction || isGlobalFunction) && !isMethod)
+				if err != nil {
+					return err
+				}
+			}
+		case *ast.GenDecl:
+			if t.Tok == token.TYPE {
+				for _, s := range t.Specs {
+					spec := s.(*ast.TypeSpec)
+					if spec.Name.Name != entity {
+						continue
+					}
+
+					err := g.GenerateFromType(file, spec, cfg)
+					if err != nil {
+						return err
+					}
+				}
 			}
 		default:
 			//log.Printf("unhandled decl: %T, %v", decl, decl)
@@ -67,16 +111,44 @@ func (g *Generator) GenerateFromFile(file *ast.File, entity string, cfg *ReifyCo
 }
 
 // GenerateFromFunction generates definitions from the given function
-func (g *Generator) GenerateFromFunction(f *ast.FuncDecl, cfg *ReifyConfig) error {
+func (g *Generator) GenerateFromFunction(
+	f *ast.FuncDecl, entity string, cfg *ReifyConfig,
+	updateTypes, updateName bool,
+) error {
 	for _, reified := range cfg.Permutations() {
-		originalName := f.Name.Name
-		originalComment := f.Doc
-		f.Name.Name = f.Name.Name + "_" + reified.NameExtension()
-		f.Doc = &ast.CommentGroup{}
-		g.todo.Append(func() {
-			f.Name.Name = originalName
-			f.Doc = originalComment
-		})
+		if updateTypes {
+			ids := g.getIdentifiers(f)
+			for i := range ids {
+				id := ids[i]
+				if id.Name == entity {
+					originalName := id.Name
+					id.Name = originalName + "_" + reified.NameExtension()
+					g.todo.Append(func() {
+						id.Name = originalName
+					})
+				}
+			}
+		}
+
+		if updateName {
+			originalName := f.Name.Name
+			f.Name.Name = originalName + "_" + reified.NameExtension()
+			g.todo.Append(func() {
+				f.Name.Name = originalName
+			})
+			if f.Doc != nil && len(f.Doc.List) > 0 {
+				originalDoc := f.Doc.List[0].Text
+				idx := strings.Index(originalDoc, originalName)
+				if idx >= 0 {
+					f.Doc.List[0].Text = originalDoc[:idx] +
+						f.Name.Name +
+						originalDoc[idx+len(originalName):]
+					g.todo.Append(func() {
+						f.Doc.List[0].Text = originalDoc
+					})
+				}
+			}
+		}
 
 		var nodestack []ast.Node
 		ast.Inspect(f, func(n ast.Node) bool {
@@ -109,6 +181,52 @@ func (g *Generator) GenerateFromFunction(f *ast.FuncDecl, cfg *ReifyConfig) erro
 	return nil
 }
 
+// GenerateFromType reifies a type definition
+func (g *Generator) GenerateFromType(file *ast.File, spec *ast.TypeSpec, cfg *ReifyConfig) error {
+	for _, reified := range cfg.Permutations() {
+		// generate the type
+		originalName := spec.Name.Name
+		spec.Name.Name = spec.Name.Name + "_" + reified.NameExtension()
+		g.todo.Append(func() {
+			spec.Name.Name = originalName
+		})
+
+		var nodestack []ast.Node
+		ast.Inspect(spec, func(n ast.Node) bool {
+			if n == nil {
+				nodestack = nodestack[:len(nodestack)-1]
+				return false
+			}
+
+			if expr, ok := n.(ast.Expr); ok {
+				ne := g.transformExpression(reified, expr)
+				if ne != nil {
+					parent := nodestack[len(nodestack)-1]
+					g.todo.Append(func() {
+						g.replaceExpr(parent, ne, expr)
+					})
+					g.replaceExpr(parent, expr, ne)
+				}
+			}
+
+			nodestack = append(nodestack, n)
+			return true
+		})
+
+		printer.Fprint(&g.code, g.fset, []ast.Decl{
+			&ast.GenDecl{
+				Tok:   token.TYPE,
+				Specs: []ast.Spec{spec},
+			},
+		})
+		g.code.WriteString("\n\n")
+
+		// restore whatever we changed
+		g.todo.Run()
+	}
+	return nil
+}
+
 // Export exports the generator to the writer
 func (g *Generator) Export(w io.Writer) error {
 	io.WriteString(w, "package "+g.pkgname+"\n\n")
@@ -124,6 +242,23 @@ func (g *Generator) Export(w io.Writer) error {
 		return err
 	}
 	return nil
+}
+
+func (g *Generator) getIdentifiers(node ast.Node) []*ast.Ident {
+	if node == nil {
+		return nil
+	}
+	var ids []*ast.Ident
+	ast.Inspect(node, func(n ast.Node) bool {
+		if n == nil {
+			return false
+		}
+		if id, ok := n.(*ast.Ident); ok {
+			ids = append(ids, id)
+		}
+		return true
+	})
+	return ids
 }
 
 func (g *Generator) transformExpression(reified ReifiedTypes, expr ast.Expr) ast.Expr {

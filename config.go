@@ -17,9 +17,15 @@ type ReifiedTypes map[string]string
 
 // NameExtension is the name extension to a function or type
 func (t ReifiedTypes) NameExtension() string {
+	ks := make([]string, 0, len(t))
+	for k := range t {
+		ks = append(ks, k)
+	}
+	sort.Strings(ks)
+
 	var vs []string
-	for _, v := range t {
-		vs = append(vs, v)
+	for _, k := range ks {
+		vs = append(vs, t[k])
 	}
 	return strings.Join(vs, "_")
 }

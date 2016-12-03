@@ -12,20 +12,29 @@ func Contains(haystack []generics.T1, needle generics.T1) bool {
 	return false
 }
 
+// A List is a list of elements
 type List struct {
 	elements []generics.T1
 }
 
+// NewList creates a new List
 func NewList() *List {
 	return &List{}
 }
 
+// Append appends elements to the list
 func (l *List) Append(els ...generics.T1) {
 	l.elements = append(l.elements, els...)
 }
 
+// Len returns the length of the list
+func (l List) Len() int {
+	return len(l.elements)
+}
+
+// Slice slices the list
 func (l *List) Slice(from, to int) *List {
-	n := NewList()
-	n.Append(l.elements[from:to]...)
-	return n
+	return &List{
+		elements: l.elements[from:to],
+	}
 }
