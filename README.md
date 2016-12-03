@@ -1,7 +1,7 @@
 # goreify
 
 `goreify` implements a form of generics for go. It works by taking in a function
-or type which uses dynamic functions and types and converting it into a function
+or type which uses dynamic functions and types and converts it into a function
 or type which uses concrete (reified) types.
 
 For example, this generic function:
