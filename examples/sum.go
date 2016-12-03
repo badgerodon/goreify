@@ -3,9 +3,6 @@ package examples
 import "github.com/badgerodon/goreify/generics"
 
 // Sum adds numbers
-// reify:
-//   types:
-//     T1: numeric
 func Sum(xs []generics.T1) generics.T1 {
 	var total generics.T1
 	for _, x := range xs {
@@ -15,9 +12,6 @@ func Sum(xs []generics.T1) generics.T1 {
 }
 
 // Diff finds the difference between two series
-// reify:
-//   types:
-//     T1: numeric
 func Diff(xs, ys []generics.T1) []generics.T1 {
 	sz := len(xs)
 	if len(ys) < sz {

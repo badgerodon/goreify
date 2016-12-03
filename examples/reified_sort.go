@@ -6,6 +6,7 @@ import (
 	generics "github.com/badgerodon/goreify/generics"
 )
 
+// Sort_int8 sorts a list
 func Sort_int8(xs []int8) {
 	sort.Sort(generics.NewSorter(
 		func() int {
