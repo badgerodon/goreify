@@ -1,7 +1,7 @@
 package examples
 
-// Diff_int finds the difference between two series
-func Diff_int(xs, ys []int) []int {
+// DiffInt finds the difference between two series
+func DiffInt(xs, ys []int) []int {
 	sz := len(xs)
 	if len(ys) < sz {
 		sz = len(ys)

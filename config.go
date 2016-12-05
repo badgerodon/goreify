@@ -23,11 +23,19 @@ func (t ReifiedTypes) NameExtension() string {
 	}
 	sort.Strings(ks)
 
+	if options.namingConvention == NamingConventionUnderscore {
+		var vs []string
+		for _, k := range ks {
+			vs = append(vs, t[k])
+		}
+		return "_" + strings.Join(vs, "_")
+	}
+
 	var vs []string
 	for _, k := range ks {
-		vs = append(vs, t[k])
+		vs = append(vs, strings.Title(t[k]))
 	}
-	return strings.Join(vs, "_")
+	return strings.Join(vs, "")
 }
 
 // A ReifyConfig specifies how to reify types

@@ -122,7 +122,7 @@ func (g *Generator) GenerateFromFunction(
 				id := ids[i]
 				if id.Name == entity {
 					originalName := id.Name
-					id.Name = originalName + "_" + reified.NameExtension()
+					id.Name = originalName + reified.NameExtension()
 					g.todo.Append(func() {
 						id.Name = originalName
 					})
@@ -132,7 +132,7 @@ func (g *Generator) GenerateFromFunction(
 
 		if updateName {
 			originalName := f.Name.Name
-			f.Name.Name = originalName + "_" + reified.NameExtension()
+			f.Name.Name = originalName + reified.NameExtension()
 			g.todo.Append(func() {
 				f.Name.Name = originalName
 			})
@@ -186,7 +186,7 @@ func (g *Generator) GenerateFromType(file *ast.File, spec *ast.TypeSpec, cfg *Re
 	for _, reified := range cfg.Permutations() {
 		// generate the type
 		originalName := spec.Name.Name
-		spec.Name.Name = spec.Name.Name + "_" + reified.NameExtension()
+		spec.Name.Name = spec.Name.Name + reified.NameExtension()
 		g.todo.Append(func() {
 			spec.Name.Name = originalName
 		})

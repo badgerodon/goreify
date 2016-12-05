@@ -38,20 +38,29 @@ func (l *stringList) String() string {
 	return strings.Join(*l.strings, ",")
 }
 
+// naming conventions
+const (
+	NamingConventionUnderscore = "underscore"
+	NamingConventionCamelCase  = "camelcase"
+)
+
 var options = struct {
-	gopath string
-	out    string
-	in     string
-	cfg    *ReifyConfig
+	gopath           string
+	out              string
+	in               string
+	cfg              *ReifyConfig
+	namingConvention string
 }{
-	gopath: os.Getenv("GOPATH"),
-	cfg:    &ReifyConfig{TypeSpecs: make(map[string][]string)},
+	gopath:           os.Getenv("GOPATH"),
+	cfg:              &ReifyConfig{TypeSpecs: make(map[string][]string)},
+	namingConvention: NamingConventionCamelCase,
 }
 
 func main() {
 	log.SetFlags(0)
 
 	flag.StringVar(&options.out, "out", options.out, "the file to write")
+	flag.StringVar(&options.namingConvention, "naming-convention", options.namingConvention, "the naming convention to use")
 	// these 2 can also be sent in positionally
 	flag.StringVar(&options.in, "in", options.in, "the type or function to reify")
 	flag.Var(options.cfg, "types", "the types to generate")

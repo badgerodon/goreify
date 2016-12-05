@@ -1,7 +1,7 @@
 package examples
 
-// Sum_int adds numbers
-func Sum_int(xs []int) int {
+// SumInt adds numbers
+func SumInt(xs []int) int {
 	var total int
 	for _, x := range xs {
 		total = total + x
@@ -9,8 +9,8 @@ func Sum_int(xs []int) int {
 	return total
 }
 
-// Sum_int8 adds numbers
-func Sum_int8(xs []int8) int8 {
+// SumInt8 adds numbers
+func SumInt8(xs []int8) int8 {
 	var total int8
 	for _, x := range xs {
 		total = total + x
@@ -18,8 +18,8 @@ func Sum_int8(xs []int8) int8 {
 	return total
 }
 
-// Sum_int16 adds numbers
-func Sum_int16(xs []int16) int16 {
+// SumInt16 adds numbers
+func SumInt16(xs []int16) int16 {
 	var total int16
 	for _, x := range xs {
 		total = total + x
@@ -27,8 +27,8 @@ func Sum_int16(xs []int16) int16 {
 	return total
 }
 
-// Sum_int32 adds numbers
-func Sum_int32(xs []int32) int32 {
+// SumInt32 adds numbers
+func SumInt32(xs []int32) int32 {
 	var total int32
 	for _, x := range xs {
 		total = total + x
@@ -36,8 +36,8 @@ func Sum_int32(xs []int32) int32 {
 	return total
 }
 
-// Sum_int64 adds numbers
-func Sum_int64(xs []int64) int64 {
+// SumInt64 adds numbers
+func SumInt64(xs []int64) int64 {
 	var total int64
 	for _, x := range xs {
 		total = total + x
@@ -45,8 +45,8 @@ func Sum_int64(xs []int64) int64 {
 	return total
 }
 
-// Sum_uint adds numbers
-func Sum_uint(xs []uint) uint {
+// SumUint adds numbers
+func SumUint(xs []uint) uint {
 	var total uint
 	for _, x := range xs {
 		total = total + x
@@ -54,8 +54,8 @@ func Sum_uint(xs []uint) uint {
 	return total
 }
 
-// Sum_uint8 adds numbers
-func Sum_uint8(xs []uint8) uint8 {
+// SumUint8 adds numbers
+func SumUint8(xs []uint8) uint8 {
 	var total uint8
 	for _, x := range xs {
 		total = total + x
@@ -63,8 +63,8 @@ func Sum_uint8(xs []uint8) uint8 {
 	return total
 }
 
-// Sum_uint16 adds numbers
-func Sum_uint16(xs []uint16) uint16 {
+// SumUint16 adds numbers
+func SumUint16(xs []uint16) uint16 {
 	var total uint16
 	for _, x := range xs {
 		total = total + x
@@ -72,8 +72,8 @@ func Sum_uint16(xs []uint16) uint16 {
 	return total
 }
 
-// Sum_uint32 adds numbers
-func Sum_uint32(xs []uint32) uint32 {
+// SumUint32 adds numbers
+func SumUint32(xs []uint32) uint32 {
 	var total uint32
 	for _, x := range xs {
 		total = total + x
@@ -81,8 +81,8 @@ func Sum_uint32(xs []uint32) uint32 {
 	return total
 }
 
-// Sum_uint64 adds numbers
-func Sum_uint64(xs []uint64) uint64 {
+// SumUint64 adds numbers
+func SumUint64(xs []uint64) uint64 {
 	var total uint64
 	for _, x := range xs {
 		total = total + x
@@ -90,8 +90,8 @@ func Sum_uint64(xs []uint64) uint64 {
 	return total
 }
 
-// Sum_float32 adds numbers
-func Sum_float32(xs []float32) float32 {
+// SumFloat32 adds numbers
+func SumFloat32(xs []float32) float32 {
 	var total float32
 	for _, x := range xs {
 		total = total + x
@@ -99,8 +99,8 @@ func Sum_float32(xs []float32) float32 {
 	return total
 }
 
-// Sum_float64 adds numbers
-func Sum_float64(xs []float64) float64 {
+// SumFloat64 adds numbers
+func SumFloat64(xs []float64) float64 {
 	var total float64
 	for _, x := range xs {
 		total = total + x
@@ -108,8 +108,8 @@ func Sum_float64(xs []float64) float64 {
 	return total
 }
 
-// Sum_complex64 adds numbers
-func Sum_complex64(xs []complex64) complex64 {
+// SumComplex64 adds numbers
+func SumComplex64(xs []complex64) complex64 {
 	var total complex64
 	for _, x := range xs {
 		total = total + x
@@ -117,8 +117,8 @@ func Sum_complex64(xs []complex64) complex64 {
 	return total
 }
 
-// Sum_complex128 adds numbers
-func Sum_complex128(xs []complex128) complex128 {
+// SumComplex128 adds numbers
+func SumComplex128(xs []complex128) complex128 {
 	var total complex128
 	for _, x := range xs {
 		total = total + x
