@@ -228,6 +228,32 @@ Functions to work with channels:
 		}
 	}
 
+Multiple dependent types: (for the input argument just put a `,` between the types)
+
+	//go:generate goreify github.com/badgerodon/goreify/examples.tree,treeNode int
+
+	type tree struct {
+		root *treeNode
+	}
+
+	type treeNode struct {
+		elem     generics.T1
+		children []*treeNode
+	}
+
+	// yielding 
+
+	type treeInt struct {
+		root *treeNodeInt
+	}
+
+	type treeNodeInt struct {
+		elem     int
+		children []*treeNodeInt
+	}
+
+This is useful for many data structures that involve recursive pointers.
+
 ## Other Libraries
 
 I found [`gengen`](https://github.com/joeshaw/gengen) after implementing most of
