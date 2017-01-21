@@ -134,6 +134,8 @@ Global functions using a type:
     	return zs
     }
 
+	// yielding
+
     func ZipInt8Int16(xs []int8, ys []int16) []PairInt8Int16 {
     	mn := len(xs)
     	if mn > len(ys) {
@@ -146,7 +148,85 @@ Global functions using a type:
     	return zs
     }
 
-I haven't investigated Channels yet.
+Functions to work with channels:
+
+	//go:generate goreify github.com/badgerodon/goreify/examples.Merge int
+
+	func Merge(srcs ...<-chan generics.T1) <-chan generics.T1 {
+		switch len(srcs) {
+		case 0:
+			return nil
+		case 1:
+			return srcs[0]
+		case 2:
+			dst := make(chan generics.T1)
+			go func() {
+				// merge until both channels are closed, then finally close the destination
+				defer close(dst)
+
+				c0, c1 := srcs[0], srcs[1]
+				for c0 != nil || c1 != nil {
+					select {
+					case m, ok := <-c0:
+						if !ok {
+							c0 = nil
+							continue
+						}
+						dst <- m
+					case m, ok := <-c1:
+						if !ok {
+							c1 = nil
+							continue
+						}
+						dst <- m
+					}
+				}
+			}()
+			return dst
+		default:
+			left, right := srcs[:len(srcs)/2], srcs[len(srcs)/2:]
+			return Merge(Merge(left...), Merge(right...))
+		}
+	}
+
+	// yielding
+
+	func MergeInt(srcs ...<-chan int) <-chan int {
+		switch len(srcs) {
+		case 0:
+			return nil
+		case 1:
+			return srcs[0]
+		case 2:
+			dst := make(chan int)
+			go func() {
+
+				defer close(dst)
+
+				c0, c1 := srcs[0], srcs[1]
+				for c0 != nil || c1 != nil {
+					select {
+					case m, ok := <-c0:
+						if !ok {
+							c0 = nil
+							continue
+						}
+						dst <- m
+					case m, ok := <-c1:
+						if !ok {
+							c1 = nil
+							continue
+						}
+						dst <- m
+					}
+				}
+			}()
+			return dst
+		default:
+			left, right := srcs[:len(srcs)/2], srcs[len(srcs)/2:]
+			return MergeInt(MergeInt(left...), MergeInt(right...))
+		}
+	}
 
 ## Other Libraries
 
