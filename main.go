@@ -62,7 +62,7 @@ func main() {
 	flag.StringVar(&options.out, "out", options.out, "the file to write")
 	flag.StringVar(&options.namingConvention, "naming-convention", options.namingConvention, "the naming convention to use")
 	// these 2 can also be sent in positionally
-	flag.StringVar(&options.in, "in", options.in, "the type or function to reify")
+	flag.StringVar(&options.in, "in", options.in, "the type(s) or function(s) to reify")
 	flag.Var(options.cfg, "types", "the types to generate")
 	flag.Parse()
 
@@ -88,8 +88,8 @@ func main() {
 	}
 
 	if options.out == "" {
-		_, entity := getIn()
-		options.out = "reified_" + strings.ToLower(entity) + ".go"
+		_, entities := getIn()
+		options.out = "reified_" + strings.ToLower(entities[0]) + ".go"
 	}
 
 	os.Remove(options.out)
@@ -100,13 +100,13 @@ func main() {
 	}
 }
 
-func getIn() (pkg, name string) {
+func getIn() (pkg string, names []string) {
 	pos := strings.LastIndexByte(options.in, '.')
-	return options.in[:pos], options.in[pos+1:]
+	return options.in[:pos], strings.Split(options.in[pos+1:], ",")
 }
 
 func generate() error {
-	pkg, entity := getIn()
+	pkg, entities := getIn()
 	working := filepath.Join(options.gopath, "src", pkg)
 
 	fset := new(token.FileSet)
@@ -120,7 +120,7 @@ func generate() error {
 
 	for _, pkg := range pkgs {
 		for _, file := range pkg.Files {
-			err = g.GenerateFromFile(file, entity, options.cfg)
+			err = g.GenerateFromFile(file, entities, options.cfg)
 			if err != nil {
 				return err
 			}

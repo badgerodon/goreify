@@ -33,7 +33,7 @@ func NewGenerator(pkgname string, fset *token.FileSet) *Generator {
 }
 
 // GenerateFromFile generates definitions from the given file
-func (g *Generator) GenerateFromFile(file *ast.File, entity string, cfg *ReifyConfig) error {
+func (g *Generator) GenerateFromFile(file *ast.File, entities []string, cfg *ReifyConfig) error {
 	for _, i := range file.Imports {
 		value := i.Path.Value
 		if len(value) > 0 && value[0] == '"' {
@@ -55,12 +55,12 @@ func (g *Generator) GenerateFromFile(file *ast.File, entity string, cfg *ReifyCo
 			isGenericFunction := false
 			isMethod := false
 			isGlobalFunction := false
-			if t.Name.Name == entity {
+			if contains(entities, t.Name.Name) {
 				isGenericFunction = true
 			} else {
 				if t.Recv != nil && len(t.Recv.List) > 0 {
 					for _, ident := range g.getIdentifiers(t.Recv) {
-						if ident.Name == entity {
+						if contains(entities, ident.Name) {
 							isMethod = true
 							break
 						}
@@ -69,7 +69,7 @@ func (g *Generator) GenerateFromFile(file *ast.File, entity string, cfg *ReifyCo
 
 				if t.Type.Results != nil && len(t.Type.Results.List) > 0 {
 					for _, ident := range g.getIdentifiers(t.Type.Results) {
-						if ident.Name == entity {
+						if contains(entities, ident.Name) {
 							isGlobalFunction = true
 							break
 						}
@@ -78,7 +78,7 @@ func (g *Generator) GenerateFromFile(file *ast.File, entity string, cfg *ReifyCo
 			}
 
 			if isGenericFunction || isMethod || isGlobalFunction {
-				err := g.GenerateFromFunction(t, entity, cfg,
+				err := g.GenerateFromFunction(t, entities, cfg,
 					// we update the types inside the function if this is a
 					// method or a global function
 					isMethod || isGlobalFunction,
@@ -93,11 +93,11 @@ func (g *Generator) GenerateFromFile(file *ast.File, entity string, cfg *ReifyCo
 			if t.Tok == token.TYPE {
 				for _, s := range t.Specs {
 					spec := s.(*ast.TypeSpec)
-					if spec.Name.Name != entity {
+					if !contains(entities, spec.Name.Name) {
 						continue
 					}
 
-					err := g.GenerateFromType(file, t, spec, cfg)
+					err := g.GenerateFromType(file, t, entities, spec, cfg)
 					if err != nil {
 						return err
 					}
@@ -112,7 +112,7 @@ func (g *Generator) GenerateFromFile(file *ast.File, entity string, cfg *ReifyCo
 
 // GenerateFromFunction generates definitions from the given function
 func (g *Generator) GenerateFromFunction(
-	f *ast.FuncDecl, entity string, cfg *ReifyConfig,
+	f *ast.FuncDecl, entities []string, cfg *ReifyConfig,
 	updateTypes, updateName bool,
 ) error {
 	for _, reified := range cfg.Permutations() {
@@ -120,7 +120,7 @@ func (g *Generator) GenerateFromFunction(
 			ids := g.getIdentifiers(f)
 			for i := range ids {
 				id := ids[i]
-				if id.Name == entity {
+				if contains(entities, id.Name) {
 					originalName := id.Name
 					id.Name = originalName + reified.NameExtension()
 					g.todo.Append(func() {
@@ -137,26 +137,16 @@ func (g *Generator) GenerateFromFunction(
 				f.Name.Name = originalName
 			})
 
+			names := map[string]string{}
+			for _, e := range entities {
+				names[e] = e + reified.NameExtension()
+			}
+
 			// preserve the documentation
 			g.replaceComment(f.Doc, originalName, f.Name.Name)
 
 			// handle recursive function calls
-			ast.Inspect(f, func(n ast.Node) bool {
-				if n == nil {
-					return false
-				}
-				if e, ok := n.(*ast.CallExpr); ok {
-					if i, ok := e.Fun.(*ast.Ident); ok {
-						if i.Name == originalName {
-							g.todo.Append(func() {
-								i.Name = originalName
-							})
-							i.Name = originalName + reified.NameExtension()
-						}
-					}
-				}
-				return true
-			})
+			g.replaceReferences(f, names)
 		}
 
 		var nodestack []ast.Node
@@ -191,7 +181,7 @@ func (g *Generator) GenerateFromFunction(
 }
 
 // GenerateFromType reifies a type definition
-func (g *Generator) GenerateFromType(file *ast.File, decl *ast.GenDecl, spec *ast.TypeSpec, cfg *ReifyConfig) error {
+func (g *Generator) GenerateFromType(file *ast.File, decl *ast.GenDecl, entities []string, spec *ast.TypeSpec, cfg *ReifyConfig) error {
 	for _, reified := range cfg.Permutations() {
 		// generate the type
 		originalName := spec.Name.Name
@@ -199,6 +189,11 @@ func (g *Generator) GenerateFromType(file *ast.File, decl *ast.GenDecl, spec *as
 		g.todo.Append(func() {
 			spec.Name.Name = originalName
 		})
+
+		names := map[string]string{}
+		for _, e := range entities {
+			names[e] = e + reified.NameExtension()
+		}
 
 		var nodestack []ast.Node
 		ast.Inspect(spec, func(n ast.Node) bool {
@@ -223,6 +218,7 @@ func (g *Generator) GenerateFromType(file *ast.File, decl *ast.GenDecl, spec *as
 		})
 
 		g.replaceComment(decl.Doc, originalName, spec.Name.Name)
+		g.replaceReferences(spec, names)
 
 		printer.Fprint(&g.code, g.fset, []ast.Decl{
 			&ast.GenDecl{
@@ -362,4 +358,35 @@ func (g *Generator) replaceComment(comment *ast.CommentGroup, originalName, newN
 			})
 		}
 	}
+}
+
+func (g *Generator) replaceReferences(node ast.Node, names map[string]string) {
+	ast.Inspect(node, func(n ast.Node) bool {
+		if n == nil {
+			return false
+		}
+		if _, ok := n.(*ast.SelectorExpr); ok {
+			return false
+		}
+
+		if i, ok := n.(*ast.Ident); ok {
+			if newName, ok := names[i.Name]; ok {
+				originalName := i.Name
+				g.todo.Append(func() {
+					i.Name = originalName
+				})
+				i.Name = newName
+			}
+		}
+		return true
+	})
+}
+
+func contains(haystack []string, needle string) bool {
+	for _, el := range haystack {
+		if el == needle {
+			return true
+		}
+	}
+	return false
 }
