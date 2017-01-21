@@ -97,7 +97,7 @@ func (g *Generator) GenerateFromFile(file *ast.File, entity string, cfg *ReifyCo
 						continue
 					}
 
-					err := g.GenerateFromType(file, spec, cfg)
+					err := g.GenerateFromType(file, t, spec, cfg)
 					if err != nil {
 						return err
 					}
@@ -136,18 +136,9 @@ func (g *Generator) GenerateFromFunction(
 			g.todo.Append(func() {
 				f.Name.Name = originalName
 			})
-			if f.Doc != nil && len(f.Doc.List) > 0 {
-				originalDoc := f.Doc.List[0].Text
-				idx := strings.Index(originalDoc, originalName)
-				if idx >= 0 {
-					f.Doc.List[0].Text = originalDoc[:idx] +
-						f.Name.Name +
-						originalDoc[idx+len(originalName):]
-					g.todo.Append(func() {
-						f.Doc.List[0].Text = originalDoc
-					})
-				}
-			}
+
+			// preserve the documentation
+			g.replaceComment(f.Doc, originalName, f.Name.Name)
 
 			// handle recursive function calls
 			ast.Inspect(f, func(n ast.Node) bool {
@@ -200,7 +191,7 @@ func (g *Generator) GenerateFromFunction(
 }
 
 // GenerateFromType reifies a type definition
-func (g *Generator) GenerateFromType(file *ast.File, spec *ast.TypeSpec, cfg *ReifyConfig) error {
+func (g *Generator) GenerateFromType(file *ast.File, decl *ast.GenDecl, spec *ast.TypeSpec, cfg *ReifyConfig) error {
 	for _, reified := range cfg.Permutations() {
 		// generate the type
 		originalName := spec.Name.Name
@@ -231,8 +222,11 @@ func (g *Generator) GenerateFromType(file *ast.File, spec *ast.TypeSpec, cfg *Re
 			return true
 		})
 
+		g.replaceComment(decl.Doc, originalName, spec.Name.Name)
+
 		printer.Fprint(&g.code, g.fset, []ast.Decl{
 			&ast.GenDecl{
+				Doc:   decl.Doc,
 				Tok:   token.TYPE,
 				Specs: []ast.Spec{spec},
 			},
@@ -351,6 +345,21 @@ func (g *Generator) replaceExpr(node ast.Node, oldExpr, newExpr ast.Expr) {
 				reflect.DeepEqual(v.Interface(), oldExpr) {
 				v.Set(reflect.ValueOf(newExpr))
 			}
+		}
+	}
+}
+
+func (g *Generator) replaceComment(comment *ast.CommentGroup, originalName, newName string) {
+	if comment != nil && len(comment.List) > 0 {
+		originalDoc := comment.List[0].Text
+		idx := strings.Index(originalDoc, originalName)
+		if idx >= 0 {
+			comment.List[0].Text = originalDoc[:idx] +
+				newName +
+				originalDoc[idx+len(originalName):]
+			g.todo.Append(func() {
+				comment.List[0].Text = originalDoc
+			})
 		}
 	}
 }

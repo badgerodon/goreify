@@ -1,10 +1,16 @@
 package examples
 
-type ListInt32 struct {
+type
+
+// A ListInt32 is a list of elements
+ListInt32 struct {
 	elements []int32
 }
 
-type ListFloat32 struct {
+type
+
+// A ListFloat32 is a list of elements
+ListFloat32 struct {
 	elements []float32
 }
 
@@ -26,6 +32,16 @@ func (l *ListInt32) Append(els ...int32) {
 // Append appends elements to the list
 func (l *ListFloat32) Append(els ...float32) {
 	l.elements = append(l.elements, els...)
+}
+
+// At returns the element at i
+func (l *ListInt32) At(i int) int32 {
+	return l.elements[i]
+}
+
+// At returns the element at i
+func (l *ListFloat32) At(i int) float32 {
+	return l.elements[i]
 }
 
 // Len returns the length of the list

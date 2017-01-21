@@ -1,6 +1,9 @@
 package examples
 
-type PairInt8Int16 struct {
+type
+
+// A PairInt8Int16 is a pair of values
+PairInt8Int16 struct {
 	// Fst is the first value
 	Fst int8
 	// Snd is the second value

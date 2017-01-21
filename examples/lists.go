@@ -27,6 +27,11 @@ func (l *List) Append(els ...generics.T1) {
 	l.elements = append(l.elements, els...)
 }
 
+// At returns the element at i
+func (l *List) At(i int) generics.T1 {
+	return l.elements[i]
+}
+
 // Len returns the length of the list
 func (l List) Len() int {
 	return len(l.elements)
