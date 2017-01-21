@@ -148,6 +148,24 @@ func (g *Generator) GenerateFromFunction(
 					})
 				}
 			}
+
+			// handle recursive function calls
+			ast.Inspect(f, func(n ast.Node) bool {
+				if n == nil {
+					return false
+				}
+				if e, ok := n.(*ast.CallExpr); ok {
+					if i, ok := e.Fun.(*ast.Ident); ok {
+						if i.Name == originalName {
+							g.todo.Append(func() {
+								i.Name = originalName
+							})
+							i.Name = originalName + reified.NameExtension()
+						}
+					}
+				}
+				return true
+			})
 		}
 
 		var nodestack []ast.Node
