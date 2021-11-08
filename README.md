@@ -1,3 +1,5 @@
+This library is deprecated with Go 1.18 which now has support for generics natively.
+
 # goreify
 
 `goreify` implements a form of generics for go. It works by taking in a function
